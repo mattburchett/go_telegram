@@ -1,3 +1,5 @@
 {
-"Token": "546410284:AAHXKhEsAB5OZTrAXCFI4kiZSFjN5i0h_wk"
+"Token": "546410284:AAHXKhEsAB5OZTrAXCFI4kiZSFjN5i0h_wk",
+"SonarrAPIURL": "http://dvr.linuxrocker.com/tv/api/",
+"SonarrAPIKey": "69e7a095a1c94f42b150380864a6c92a"
 }

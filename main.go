@@ -3,19 +3,75 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
-	"time"
 
-	tb "gopkg.in/tucnak/telebot.v2"
+	"github.com/yanzay/tbot"
 )
 
-// Configuration - Specify what to look for in Config file
-type Configuration struct {
-	Token string
+// Config - Specify what to look for in Config file
+var Config struct {
+	BotToken          string
+	SonarrAPIURL      string
+	SonarrAPIKey      string
+	PlexPyAPIURL      string
+	PlexPyAPIKey      string
+	RadarrAPIURL      string
+	RadarrAPIKey      string
+	CouchPotatoAPIURL string
+	CouchPotatoAPIKey string
+	PlexAPIURL        string
+	PlexAPIKey        string
 }
 
-// ReadConfig from file
+func sonarrStatus(message *tbot.Message) {
+	response, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
+
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	message.Replyf("%s", responseData)
+
+}
+
+func sonarrVersion(message *tbot.Message) {
+	response, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type Version struct {
+		Version string `json:"version"`
+	}
+
+	version := Version{}
+	jsonErr := json.Unmarshal(responseData, &version)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
+	}
+
+	message.Replyf("%s", version.Version)
+
+}
+
+// func activeSteamers(message *tbot.Message) {
+// 	response, err := http.Get(Config.PlexAPIURL + "api/v2?apikey=" + Config.PlexAPIKey + "&cmd=")
+// }
+
 func main() {
 	c := flag.String("c", "./config.json", "Specify the configuration file.")
 	flag.Parse()
@@ -25,27 +81,27 @@ func main() {
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
-	Config := Configuration{}
 	err = decoder.Decode(&Config)
 	if err != nil {
 		log.Fatal("can't decode config JSON: ", err)
 	}
 
-	b, err := tb.NewBot(tb.Settings{
-		Token:  Config.Token,
-		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
-	})
-
+	bot, err := tbot.NewServer(Config.BotToken)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
-	b.Handle("/ping", func(m *tb.Message) {
-		b.Send(m.Sender, "pong")
-	})
+	whitelist := []string{"WARBIRD199"}
+	bot.AddMiddleware(tbot.NewAuth(whitelist))
 
-	log.Print("Starting bot...")
+	bot.Handle("/ping", "pong!")
 
-	b.Start()
+	bot.HandleFunc("/sonarr_status", sonarrStatus)
+
+	bot.HandleFunc("/sonarr_version", sonarrVersion)
+
+	// Start Listening
+	err = bot.ListenAndServe()
+	log.Fatal(err)
+
 }
