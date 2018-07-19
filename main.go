@@ -11,19 +11,19 @@ import (
 	"github.com/yanzay/tbot"
 )
 
-// Config - Specify what to look for in Config file
+// Config - Set layout
 var Config struct {
-	BotToken     string
-	SonarrAPIURL string
-	SonarrAPIKey string
-	PlexPyAPIURL string
-	PlexPyAPIKey string
-	// RadarrAPIURL      string
-	// RadarrAPIKey      string
-	// CouchPotatoAPIURL string
-	// CouchPotatoAPIKey string
-	// PlexAPIURL        string
-	// PlexAPIKey        string
+	BotToken          string
+	SonarrAPIURL      string
+	SonarrAPIKey      string
+	PlexPyAPIURL      string
+	PlexPyAPIKey      string
+	RadarrAPIURL      string
+	RadarrAPIKey      string
+	CouchPotatoAPIURL string
+	CouchPotatoAPIKey string
+	PlexAPIURL        string
+	PlexAPIKey        string
 }
 
 func sonarrStatus(message *tbot.Message) {
