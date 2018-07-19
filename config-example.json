@@ -1,0 +1,7 @@
+{
+    "BotToken": "your_bot_token",
+    "SonarrAPIURL": "http://example.com/tv/api/",
+    "SonarrAPIKey": "your key",
+    "PlexPyAPIURL": "http://example.com/plexpy/api/v2",
+    "PlexPyAPIKey": "your key"
+    }

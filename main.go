@@ -13,43 +13,43 @@ import (
 
 // Config - Specify what to look for in Config file
 var Config struct {
-	BotToken          string
-	SonarrAPIURL      string
-	SonarrAPIKey      string
-	PlexPyAPIURL      string
-	PlexPyAPIKey      string
-	RadarrAPIURL      string
-	RadarrAPIKey      string
-	CouchPotatoAPIURL string
-	CouchPotatoAPIKey string
-	PlexAPIURL        string
-	PlexAPIKey        string
+	BotToken     string
+	SonarrAPIURL string
+	SonarrAPIKey string
+	PlexPyAPIURL string
+	PlexPyAPIKey string
+	// RadarrAPIURL      string
+	// RadarrAPIKey      string
+	// CouchPotatoAPIURL string
+	// CouchPotatoAPIKey string
+	// PlexAPIURL        string
+	// PlexAPIKey        string
 }
 
 func sonarrStatus(message *tbot.Message) {
-	response, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
+	r, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
 
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 
-	responseData, err := ioutil.ReadAll(response.Body)
+	rd, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	message.Replyf("%s", responseData)
+	message.Replyf("%s", rd)
 
 }
 
 func sonarrVersion(message *tbot.Message) {
-	response, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
+	r, err := http.Get(Config.SonarrAPIURL + "system/status?apikey=" + Config.SonarrAPIKey)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	responseData, err := ioutil.ReadAll(response.Body)
+	rd, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,19 +58,42 @@ func sonarrVersion(message *tbot.Message) {
 		Version string `json:"version"`
 	}
 
-	version := Version{}
-	jsonErr := json.Unmarshal(responseData, &version)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
+	v := Version{}
+	jv := json.Unmarshal(rd, &v)
+	if jv != nil {
+		log.Fatal(jv)
 	}
 
-	message.Replyf("%s", version.Version)
+	message.Replyf("%s", v.Version)
 
 }
 
-// func activeSteamers(message *tbot.Message) {
-// 	response, err := http.Get(Config.PlexAPIURL + "api/v2?apikey=" + Config.PlexAPIKey + "&cmd=")
-// }
+func activeSteamers(message *tbot.Message) {
+	r, err := http.Get(Config.PlexPyAPIURL + "?apikey=" + Config.PlexPyAPIKey + "&cmd=get_activity")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rd, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type Activity struct {
+		StreamCount             int `json:"stream_count"`
+		StreamCountDirectPlay   int `json:"stream_count_direct_play"`
+		StreamCountDirectStream int `json:"stream_count_direct_stream"`
+		StreamCountTranscode    int `json:"stream_count_transcode"`
+	}
+
+	a := Activity{}
+	ja := json.Unmarshal(rd, &a)
+	if ja != nil {
+		log.Fatal(ja)
+	}
+
+	message.Replyf("Stream Count: %v \nStream Count (Direct Play): %v \nStream Count (Direct Stream): %v \nStream Count (Transcode): %v", a.StreamCount, a.StreamCountDirectPlay, a.StreamCountDirectStream, a.StreamCountTranscode)
+}
 
 func main() {
 	c := flag.String("c", "./config.json", "Specify the configuration file.")
@@ -99,6 +122,8 @@ func main() {
 	bot.HandleFunc("/sonarr_status", sonarrStatus)
 
 	bot.HandleFunc("/sonarr_version", sonarrVersion)
+
+	bot.HandleFunc("/activity", activeSteamers)
 
 	// Start Listening
 	err = bot.ListenAndServe()
