@@ -68,6 +68,10 @@ func sonarrVersion(message *tbot.Message) {
 
 }
 
+func sayHandler(message *tbot.Message) {
+	message.Reply("You said: " + message.Vars["text"])
+}
+
 func activeSteamers(message *tbot.Message) {
 	r, err := http.Get(Config.PlexPyAPIURL + "?apikey=" + Config.PlexPyAPIKey + "&cmd=get_activity")
 	if err != nil {
@@ -78,17 +82,6 @@ func activeSteamers(message *tbot.Message) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// type Activity struct {
-	// 	StreamCount             int `json:"stream_count"`
-	// 	StreamCountDirectPlay   int `json:"stream_count_direct_play"`
-	// 	StreamCountDirectStream int `json:"stream_count_direct_stream"`
-	// 	StreamCountTranscode    int `json:"stream_count_transcode"`
-	// }
-
-	// type Response struct {
-	// 	Data Activity
-	// }
 
 	type Activity struct {
 		Response struct {
@@ -130,6 +123,8 @@ func main() {
 	bot.AddMiddleware(tbot.NewAuth(whitelist))
 
 	bot.Handle("/ping", "pong!")
+
+	bot.HandleFunc("/say {text}", sayHandler)
 
 	bot.HandleFunc("/sonarr_status", sonarrStatus)
 
