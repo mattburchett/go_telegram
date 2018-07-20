@@ -79,11 +79,23 @@ func activeSteamers(message *tbot.Message) {
 		log.Fatal(err)
 	}
 
+	// type Activity struct {
+	// 	StreamCount             int `json:"stream_count"`
+	// 	StreamCountDirectPlay   int `json:"stream_count_direct_play"`
+	// 	StreamCountDirectStream int `json:"stream_count_direct_stream"`
+	// 	StreamCountTranscode    int `json:"stream_count_transcode"`
+	// }
+
+	// type Response struct {
+	// 	Data Activity
+	// }
+
 	type Activity struct {
-		StreamCount             int `json:"stream_count"`
-		StreamCountDirectPlay   int `json:"stream_count_direct_play"`
-		StreamCountDirectStream int `json:"stream_count_direct_stream"`
-		StreamCountTranscode    int `json:"stream_count_transcode"`
+		Response struct {
+			Data struct {
+				StreamCount string `json:"stream_count"`
+			} `json:"data"`
+		} `json:"response"`
 	}
 
 	a := Activity{}
@@ -92,7 +104,7 @@ func activeSteamers(message *tbot.Message) {
 		log.Fatal(ja)
 	}
 
-	message.Replyf("Stream Count: %v \nStream Count (Direct Play): %v \nStream Count (Direct Stream): %v \nStream Count (Transcode): %v", a.StreamCount, a.StreamCountDirectPlay, a.StreamCountDirectStream, a.StreamCountTranscode)
+	message.Replyf("Stream Count: %v", a.Response.Data.StreamCount)
 }
 
 func main() {
