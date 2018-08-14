@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/yanzay/tbot"
 )
@@ -68,8 +70,60 @@ func sonarrVersion(message *tbot.Message) {
 
 }
 
-func sayHandler(message *tbot.Message) {
-	message.Reply("You said: " + message.Vars["text"])
+func sonarrSearch(message *tbot.Message) {
+	message.Vars["text"] = strings.Replace(message.Vars["text"], " ", "+", -1)
+	r, err := http.Get(Config.SonarrAPIURL + "series/lookup?apikey=" + Config.SonarrAPIKey + "&term=" + message.Vars["text"])
+
+	if err != nil {
+		log.Fatalf("There was an error communicating with Sonarr: %v", err)
+	}
+
+	rd, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalf("There was an error parsing the JSON response: %v", err)
+	}
+
+	type seriesLookup struct {
+		Title       string `json:"title"`
+		SortTitle   string `json:"sortTitle"`
+		SeasonCount int    `json:"seasonCount"`
+		Status      string `json:"status"`
+		Year        int    `json:"year"`
+		TvdbID      int    `json:"tvdbId"`
+		TvRageID    int    `json:"tvRageId"`
+		TvMazeID    int    `json:"tvMazeId"`
+		CleanTitle  string `json:"cleanTitle"`
+		ImdbID      string `json:"imdbId"`
+	}
+
+	var sl []seriesLookup
+	jsl := json.Unmarshal(rd, &sl)
+	if jsl != nil {
+		log.Fatalf("There was an error parsing the JSON response (unmarshal): %v", jsl)
+	}
+
+	buttons := make([][]string, 0)
+	for k := range sl {
+		if len(rd) == 2 {
+			message.Reply("You must specify a show. Type /usage for usage.")
+		} else {
+			// message.Replyf("%v (%v) - %v Seasons", sl[k].Title, sl[k].Year, sl[k].SeasonCount)
+			results := make([]string, 0)
+			output := fmt.Sprintf("%v (%v) - %v Seasons", sl[k].Title, sl[k].Year, sl[k].SeasonCount)
+			results = append(results, output)
+			buttons = append(buttons, results)
+
+		}
+	}
+	message.ReplyKeyboard("Please choose a show.", buttons, tbot.WithDataInlineButtons)
+}
+
+func usageHelp(message *tbot.Message) {
+	message.Reply("USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
+}
+
+func badSyntax(message *tbot.Message) {
+	message.Reply("You have to specify a name. Type /help for help.")
 }
 
 func activeSteamers(message *tbot.Message) {
@@ -100,6 +154,10 @@ func activeSteamers(message *tbot.Message) {
 	message.Replyf("Stream Count: %v", a.Response.Data.StreamCount)
 }
 
+func movieSearch(message *tbot.Message) {
+
+}
+
 func main() {
 	c := flag.String("c", "./config.json", "Specify the configuration file.")
 	flag.Parse()
@@ -124,13 +182,24 @@ func main() {
 
 	bot.Handle("/ping", "pong!")
 
-	bot.HandleFunc("/say {text}", sayHandler)
+	bot.HandleFunc("/s", badSyntax)
+	bot.HandleFunc("/show", badSyntax)
+	bot.HandleFunc("/s {text}", sonarrSearch)
+	bot.HandleFunc("/show {text}", sonarrSearch)
+
+	bot.HandleFunc("/m", badSyntax)
+	bot.HandleFunc("/movie", badSyntax)
+	bot.HandleFunc("/m {text}", movieSearch)
+	bot.HandleFunc("/movie {text}", sonarrSearch)
 
 	bot.HandleFunc("/sonarr_status", sonarrStatus)
 
 	bot.HandleFunc("/sonarr_version", sonarrVersion)
 
 	bot.HandleFunc("/activity", activeSteamers)
+
+	bot.HandleFunc("/help", usageHelp)
+	bot.HandleFunc("/usage", usageHelp)
 
 	// Start Listening
 	err = bot.ListenAndServe()
