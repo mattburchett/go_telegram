@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -26,54 +25,42 @@ func main() {
 		return
 	}
 
-	test := make([][]tb.InlineButton, 0)
-	test = append(test, []tb.InlineButton{{Unique: "1", Text: "test"}})
-
-	fmt.Println(test)
-	fmt.Println(len(test))
-	fmt.Println(len(test[0]))
-
-	b.Handle(test[1][1], func(c *tb.Callback) {
-		b.Respond(c, &tb.CallbackResponse{Text: c.ID})
-	})
-
 	b.Handle("/ping", func(m *tb.Message) {
 		b.Send(m.Sender, "pong")
 	})
 
-	b.Handle("/test", func(m *tb.Message) {
-		b.Send(m.Sender, "Inline test.", &tb.ReplyMarkup{
-			InlineKeyboard: test,
-		})
-	})
+	test(b)
 
 	b.Start()
 
 }
 
 func test(b *tb.Bot) {
+	var stored *tb.Message
 	inlineBtns := []tb.InlineButton{tb.InlineButton{Unique: "1", Text: "Ping"}, tb.InlineButton{Unique: "2", Text: "Is"}, tb.InlineButton{Unique: "3", Text: "Stupid"}}
 	inlineKeys := [][]tb.InlineButton{inlineBtns}
 
-	for _, btn := range inlineBtns {
-		b.Handle(&btn, func(c *tb.Callback) {
-			b.Respond(c, &tb.CallbackResponse{Text: c.Message.Text})
-		})
-	}
-
 	b.Handle("/test", func(m *tb.Message) {
-		b.Send(m.Sender, "Inline test.", &tb.ReplyMarkup{
+		msg, _ := b.Send(m.Sender, "Inline test.", &tb.ReplyMarkup{
 			InlineKeyboard: inlineKeys,
 		})
-	})
-}
+		stored = msg
 
-func inlineButton(txt string) [][]tb.InlineButton {
-	return [][]tb.InlineButton{
-		{
-			tb.InlineButton{
-				Text: txt,
-			},
-		},
+	})
+
+	for _, btn := range inlineBtns {
+		type button struct {
+			ID    int
+			Stuff tb.InlineButton
+		}
+
+		b.Handle(&btn, func(c *tb.Callback) {
+			b.Respond(c, &tb.CallbackResponse{Text: "Callback received."})
+			func(m *tb.Message) {
+				b.EditReplyMarkup(m, &tb.ReplyMarkup{ReplyKeyboardRemove: true})
+				b.Edit(m, "Callback received. Processing.")
+			}(stored)
+			b.Send(c.Sender, btn.Text)
+		})
 	}
 }
