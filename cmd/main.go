@@ -2,65 +2,62 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/mattburchett/go_telegram/pkg/config"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"github.com/yanzay/tbot/v2"
 )
 
-func main() {
+type application struct {
+	client            *tbot.Client
+	callbackChatID    string
+	callbackMessageID int
+}
 
+func main() {
 	cfg, err := config.GetConfig("config.json")
 	if err != nil {
-		log.Fatal("Failed to load config.")
+		log.Fatal("Failed to read JSON.")
 	}
 
-	b, err := tb.NewBot(tb.Settings{
-		Token:  cfg.TelegramToken,
-		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
+	app := &application{}
+
+	bot := tbot.New(cfg.TelegramToken)
+	app.client = bot.Client()
+	c := bot.Client()
+	bot.HandleMessage("/ping", func(m *tbot.Message) {
+		c.SendMessage(m.Chat.ID, "pong")
 	})
 
+	bot.HandleMessage("/test", app.testHandler)
+	bot.HandleCallback(app.callbackHandler)
+
+	err = bot.Start()
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
-
-	b.Handle("/ping", func(m *tb.Message) {
-		b.Send(m.Sender, "pong")
-	})
-
-	test(b)
-
-	b.Start()
 
 }
 
-func test(b *tb.Bot) {
-	var stored *tb.Message
-	inlineBtns := []tb.InlineButton{tb.InlineButton{Unique: "1", Text: "Ping"}, tb.InlineButton{Unique: "2", Text: "Is"}, tb.InlineButton{Unique: "3", Text: "Stupid"}}
-	inlineKeys := [][]tb.InlineButton{inlineBtns}
+func (a *application) testHandler(m *tbot.Message) {
+	buttons := make([]string, 0)
+	buttons = append(buttons, "ping", "is", "stupid")
 
-	b.Handle("/test", func(m *tb.Message) {
-		msg, _ := b.Send(m.Sender, "Inline test.", &tb.ReplyMarkup{
-			InlineKeyboard: inlineKeys,
-		})
-		stored = msg
+	inline2 := make([][]tbot.InlineKeyboardButton, 0)
 
-	})
-
-	for _, btn := range inlineBtns {
-		type button struct {
-			ID    int
-			Stuff tb.InlineButton
-		}
-
-		b.Handle(&btn, func(c *tb.Callback) {
-			b.Respond(c, &tb.CallbackResponse{Text: "Callback received."})
-			func(m *tb.Message) {
-				b.EditReplyMarkup(m, &tb.ReplyMarkup{ReplyKeyboardRemove: true})
-				b.Edit(m, "Callback received. Processing.")
-			}(stored)
-			b.Send(c.Sender, btn.Text)
-		})
+	for _, i := range buttons {
+		inline2 = append(inline2, []tbot.InlineKeyboardButton{{
+			Text:         i,
+			CallbackData: i,
+		}})
 	}
+
+	msg, _ := a.client.SendMessage(m.Chat.ID, "Inline test.", tbot.OptInlineKeyboardMarkup(&tbot.InlineKeyboardMarkup{InlineKeyboard: inline2}))
+	a.callbackMessageID = msg.MessageID
+	a.callbackChatID = m.Chat.ID
+
+}
+
+func (a *application) callbackHandler(cq *tbot.CallbackQuery) {
+	a.client.EditMessageText(a.callbackChatID, a.callbackMessageID, "Callback received.")
+	a.client.SendMessage(a.callbackChatID, cq.Data)
 }
