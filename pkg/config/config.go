@@ -11,6 +11,8 @@ import (
 type Config struct {
 	TelegramToken  string `json:"telegramToken"`
 	TelegramChatID string `json:"telegramChatID"`
+	SonarrAPIURL   string `json:"sonarrAPIURL"`
+	SonarrAPIKey   string `json:"sonarrAPIKey"`
 }
 
 //GetConfig gets the configuration values for the api using the file in the supplied configPath.

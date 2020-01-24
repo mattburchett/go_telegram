@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/mattburchett/go_telegram/pkg/config"
 	"github.com/yanzay/tbot/v2"
@@ -51,7 +52,7 @@ func (a *application) testHandler(m *tbot.Message) {
 		}})
 	}
 
-	msg, _ := a.client.SendMessage(m.Chat.ID, "Inline test.", tbot.OptInlineKeyboardMarkup(&tbot.InlineKeyboardMarkup{InlineKeyboard: inline2}))
+	msg, _ := a.client.SendMessage(m.Chat.ID, "Inline test. "+strings.TrimPrefix(m.Text, "/test "), tbot.OptInlineKeyboardMarkup(&tbot.InlineKeyboardMarkup{InlineKeyboard: inline2}))
 	a.callbackMessageID = msg.MessageID
 	a.callbackChatID = m.Chat.ID
 
