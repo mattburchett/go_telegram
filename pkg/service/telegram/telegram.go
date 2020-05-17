@@ -45,6 +45,10 @@ func (tb *Bot) Handler() {
 	tb.Bot.HandleMessage("/admin myID", tb.myID)
 	tb.Bot.HandleMessage("/admin chatID", tb.chatID)
 
+	// Help
+	tb.Bot.HandleMessage("/help", "USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
+	tb.Bot.HandleMessage("/h", "USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
+
 	// Callback Handler
 	tb.Bot.HandleCallback(tb.callbackHandler)
 }
