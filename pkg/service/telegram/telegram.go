@@ -46,8 +46,8 @@ func (tb *Bot) Handler() {
 	tb.Bot.HandleMessage("/admin chatID", tb.chatID)
 
 	// Help
-	tb.Bot.HandleMessage("/help", "USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
-	tb.Bot.HandleMessage("/h", "USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
+	tb.Bot.HandleMessage("/help$", tb.helpHandler)
+	tb.Bot.HandleMessage("/h$", tb.helpHandler)
 
 	// Callback Handler
 	tb.Bot.HandleCallback(tb.callbackHandler)
@@ -66,4 +66,8 @@ func stat(h tbot.UpdateHandler) tbot.UpdateHandler {
 func (tb *Bot) callbackHandler(cq *tbot.CallbackQuery) {
 	tb.Client.EditMessageText(tb.CallbackChatID, tb.CallbackMessageID, "Callback received.")
 	tb.Client.SendMessage(tb.CallbackChatID, cq.Data)
+}
+
+func (tb *Bot) helpHandler(m *tbot.Message) {
+	tb.Client.SendMessage(m.Chat.ID, "USAGE:\n\n/movie <Movie Name> or /m <Movie Name>\n/show <TV Show Name> or /s <TV Show Name>\n\nEXAMPLES:\n\n/s The Walking Dead\n/m Avatar")
 }
