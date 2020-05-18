@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/mattburchett/go_telegram/pkg/core/config"
@@ -15,6 +16,15 @@ type Bot struct {
 	Bot               *tbot.Server
 	CallbackChatID    string
 	CallbackMessageID int
+}
+
+// Stat middleware.
+func stat(h tbot.UpdateHandler) tbot.UpdateHandler {
+	return func(u *tbot.Update) {
+		start := time.Now()
+		h(u)
+		log.Printf("Handle time: %v", time.Now().Sub(start))
+	}
 }
 
 // New creates an active telegram bot and loads the handlers.
@@ -35,7 +45,8 @@ func (tb *Bot) Handler() {
 		tb.Client.SendMessage(m.Chat.ID, "pong")
 	})
 
-	// sonarr/admin.go
+	// telegram/sonar.go
+	tb.Bot.HandleMessage("/s", tb.sonarrSearch)
 	tb.Bot.HandleMessage("/admin sonarrStatus", tb.sonarrStatus)
 
 	// telegram/testhandler.go
@@ -53,19 +64,20 @@ func (tb *Bot) Handler() {
 	tb.Bot.HandleCallback(tb.callbackHandler)
 }
 
-// Stat middleware.
-func stat(h tbot.UpdateHandler) tbot.UpdateHandler {
-	return func(u *tbot.Update) {
-		start := time.Now()
-		h(u)
-		log.Printf("Handle time: %v", time.Now().Sub(start))
-	}
-}
-
 // callbackHandler handles callbacks.
 func (tb *Bot) callbackHandler(cq *tbot.CallbackQuery) {
-	tb.Client.EditMessageText(tb.CallbackChatID, tb.CallbackMessageID, "Callback received.")
+	go func() {
+		tb.Client.AnswerCallbackQuery(cq.ID, tbot.OptText("Request received."))
+		tb.Client.DeleteMessage(tb.CallbackChatID, tb.CallbackMessageID)
+	}()
+
+	if strings.Contains(cq.Data, "tv_") {
+		tb.sonarrAdd(cq)
+		return
+	}
+
 	tb.Client.SendMessage(tb.CallbackChatID, cq.Data)
+
 }
 
 func (tb *Bot) helpHandler(m *tbot.Message) {

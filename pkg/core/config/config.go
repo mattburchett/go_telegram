@@ -16,8 +16,10 @@ type Config struct {
 	} `json:"telegram"`
 
 	Sonarr struct {
-		URL    string `json:"url"`
-		APIKey string `json:"apiKey"`
+		URL         string `json:"url"`
+		APIKey      string `json:"apiKey"`
+		SeasonLimit int    `json:"seasonLimit"`
+		ProfileID   int    `json:"proFileId"`
 	} `json:"sonarr"`
 }
 

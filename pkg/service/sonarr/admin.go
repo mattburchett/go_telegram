@@ -8,8 +8,8 @@ import (
 	"github.com/yanzay/tbot/v2"
 )
 
-// SonarrStatus contains the Sonarr request for system status.
-func SonarrStatus(m *tbot.Message, config config.Config) (string, error) {
+// Status contains the Sonarr request for system status.
+func Status(m *tbot.Message, config config.Config) (string, error) {
 	r, err := http.Get(config.Sonarr.URL + "system/status?apikey=" + config.Sonarr.APIKey)
 	if err != nil {
 		return "Failed to contact Sonarr for data", err

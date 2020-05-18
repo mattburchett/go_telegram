@@ -1,31 +1,36 @@
 package telegram
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/yanzay/tbot/v2"
 )
 
 func (tb *Bot) myID(m *tbot.Message) {
-	if tb.AdminCheck(m) {
+	if tb.adminCheck(m.From.ID, false) {
 		tb.Client.SendMessage(m.Chat.ID, strconv.Itoa(m.From.ID))
-		fmt.Println(m.From.ID)
+		return
 	}
+
+	tb.Client.SendMessage(m.Chat.ID, "You are not an authorized admin.")
 }
 
 func (tb *Bot) chatID(m *tbot.Message) {
-	tb.Client.SendMessage(m.Chat.ID, m.Chat.ID)
+	if tb.adminCheck(m.From.ID, false) {
+		tb.Client.SendMessage(m.Chat.ID, m.Chat.ID)
+		return
+	}
+
+	tb.Client.SendMessage(m.Chat.ID, "You are not an authorized admin.")
 }
 
-// AdminCheck checks for valid bot admins.
-func (tb *Bot) AdminCheck(m *tbot.Message) bool {
+// adminCheck checks for valid bot admins.
+func (tb *Bot) adminCheck(id int, callback bool) bool {
 	for _, admin := range tb.Config.Telegram.Admins {
-		if m.From.ID == admin {
+		if id == admin {
 			return true
 		}
-
 	}
-	tb.Client.SendMessage(m.Chat.ID, "You are not an authorized admin.")
+
 	return false
 }
