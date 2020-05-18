@@ -60,7 +60,7 @@ type sonarrAdd struct {
 	} `json:"addOptions"`
 }
 
-type RootFolderLookup []struct {
+type rootFolderLookup []struct {
 	Path            string `json:"path"`
 	FreeSpace       int64  `json:"freeSpace"`
 	TotalSpace      int64  `json:"totalSpace"`
@@ -174,16 +174,16 @@ func Add(callback string, config config.Config) string {
 	}
 
 	// Gather the root folder location.
-	rootFolderLookup, err := http.Get(config.Sonarr.URL + "/rootfolder?apikey=" + config.Sonarr.APIKey)
+	rootFolderLookupQuery, err := http.Get(config.Sonarr.URL + "/rootfolder?apikey=" + config.Sonarr.APIKey)
 	if err != nil {
 		return err.Error()
 	}
-	rootFolderData, err := ioutil.ReadAll(rootFolderLookup.Body)
+	rootFolderData, err := ioutil.ReadAll(rootFolderLookuQuery.Body)
 	if err != nil {
 		return err.Error()
 	}
 
-	rootFolder := RootFolderLookup{}
+	rootFolder := rootFolderLookup{}
 	rootFolderJSON := json.Unmarshal(rootFolderData, &rootFolder)
 	if rootFolderJSON != nil {
 		return err.Error()
