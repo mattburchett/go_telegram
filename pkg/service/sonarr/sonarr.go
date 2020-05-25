@@ -178,7 +178,7 @@ func Add(callback string, config config.Config) string {
 	if err != nil {
 		return err.Error()
 	}
-	rootFolderData, err := ioutil.ReadAll(rootFolderLookuQuery.Body)
+	rootFolderData, err := ioutil.ReadAll(rootFolderLookupQuery.Body)
 	if err != nil {
 		return err.Error()
 	}

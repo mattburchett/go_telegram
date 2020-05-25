@@ -11,6 +11,10 @@ import (
 
 // Sonarr Search
 func (tb *Bot) sonarrSearch(m *tbot.Message) {
+	if !tb.whitelistHandler(m) {
+		return
+	}
+
 	text := strings.TrimPrefix(strings.TrimPrefix(m.Text, "/s"), " ")
 	if len(text) == 0 {
 		tb.Client.SendMessage(m.Chat.ID, "You must specify a show. Type /help for help.")
@@ -29,6 +33,11 @@ func (tb *Bot) sonarrSearch(m *tbot.Message) {
 			Text:         i.Button,
 			CallbackData: "tv_" + i.Callback,
 		}})
+	}
+
+	if len(request) == 0 {
+		tb.Client.SendMessage(m.Chat.ID, "No results found, try harder.")
+		return
 	}
 
 	response, _ := tb.Client.SendMessage(m.Chat.ID, "Please select the show you would like to download.", tbot.OptInlineKeyboardMarkup(&tbot.InlineKeyboardMarkup{InlineKeyboard: inlineResponse}))
@@ -56,6 +65,10 @@ func (tb *Bot) sonarrAdd(cq *tbot.CallbackQuery) {
 
 // sonarrStatus queries Sonarr for it's system status information.
 func (tb *Bot) sonarrStatus(m *tbot.Message) {
+	if !tb.whitelistHandler(m) {
+		return
+	}
+
 	if tb.adminCheck(m.From.ID, false) {
 		request, err := sonarr.Status(m, tb.Config)
 

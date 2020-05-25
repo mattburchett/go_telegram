@@ -10,17 +10,23 @@ import (
 // Config - This struct will hold configuration components.
 type Config struct {
 	Telegram struct {
-		Token  string `json:"token"`
-		ChatID string `json:"chatID"`
-		Admins []int  `json:"admins"`
+		Token           string   `json:"token"`
+		ChatID          string   `json:"chatID"`
+		Admins          []int    `json:"admins"`
+		AuthorizedChats []string `json:"authorizedChats"`
 	} `json:"telegram"`
 
 	Sonarr struct {
 		URL         string `json:"url"`
 		APIKey      string `json:"apiKey"`
 		SeasonLimit int    `json:"seasonLimit"`
-		ProfileID   int    `json:"proFileId"`
+		ProfileID   int    `json:"profileId"`
 	} `json:"sonarr"`
+	CouchPotato struct {
+		URL       string `json:"url"`
+		APIKey    string `json:"apiKey"`
+		ProfileID string `json:"profileId`
+	} `json:"couchpotato"`
 }
 
 //GetConfig gets the configuration values for the api using the file in the supplied configPath.
