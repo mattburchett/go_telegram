@@ -10,6 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/yanzay/tbot v1.0.0
 	github.com/yanzay/tbot/v2 v2.1.0
+	golang.org/x/tools/gopls v0.4.1 // indirect
 	gopkg.in/tucnak/telebot.v2 v2.0.0-00010101000000-000000000000
-	honnef.co/go/tools v0.0.1-2019.2.3
+	honnef.co/go/tools v0.0.1-2020.1.3
 )
