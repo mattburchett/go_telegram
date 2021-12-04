@@ -14,6 +14,9 @@ func (tb *Bot) Handler() {
 		tb.Client.SendMessage(m.Chat.ID, "pong")
 	})
 
+	// telegram/couchpotato.go
+	tb.Bot.HandleMessage("/m", tb.couchpotatoSearch)
+
 	// telegram/sonar.go
 	tb.Bot.HandleMessage("/s", tb.sonarrSearch)
 	tb.Bot.HandleMessage("/admin sonarrStatus", tb.sonarrStatus)

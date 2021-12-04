@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Telegram struct {
 		Token           string   `json:"token"`
-		ChatID          string   `json:"chatID"`
+		ChatID          string   `json:"chatId"`
 		Admins          []int    `json:"admins"`
 		AuthorizedChats []string `json:"authorizedChats"`
 	} `json:"telegram"`
